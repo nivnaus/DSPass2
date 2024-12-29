@@ -39,13 +39,44 @@ public class App {
 
         // Step 1
         HadoopJarStepConfig step1 = new HadoopJarStepConfig()
-                .withJar("s3://bucket163897429777/jars/WordCount.jar")
+                .withJar("s3://bucket163897429777/jars/Step1.jar") // TODO: change this to our own bucket
                 .withMainClass("Step1");
 
         StepConfig stepConfig1 = new StepConfig()
                 .withName("Step1")
                 .withHadoopJarStep(step1)
                 .withActionOnFailure("TERMINATE_JOB_FLOW");
+
+        // Step 2
+        HadoopJarStepConfig step2 = new HadoopJarStepConfig()
+                .withJar("s3://bucket163897429777/jars/Step2.jar") // TODO: change this to our own bucket
+                .withMainClass("step2");
+
+        StepConfig stepConfig2 = new StepConfig()
+                .withName("step2")
+                .withHadoopJarStep(step2)
+                .withActionOnFailure("TERMINATE_JOB_FLOW");
+
+        // Step 3
+        HadoopJarStepConfig step3 = new HadoopJarStepConfig()
+                .withJar("s3://bucket163897429777/jars/Step3.jar") // TODO: change this to our own bucket
+                .withMainClass("step3");
+
+        StepConfig stepConfig3 = new StepConfig()
+                .withName("step3")
+                .withHadoopJarStep(step3)
+                .withActionOnFailure("TERMINATE_JOB_FLOW");
+
+        // Step 4
+        HadoopJarStepConfig step4 = new HadoopJarStepConfig()
+                .withJar("s3://bucket163897429777/jars/Step4.jar") // TODO: change this to our own bucket
+                .withMainClass("step4");
+
+        StepConfig stepConfig4 = new StepConfig()
+                .withName("step4")
+                .withHadoopJarStep(step4)
+                .withActionOnFailure("TERMINATE_JOB_FLOW");
+
 
         //Job flow
         JobFlowInstancesConfig instances = new JobFlowInstancesConfig()
@@ -61,7 +92,7 @@ public class App {
         RunJobFlowRequest runFlowRequest = new RunJobFlowRequest()
                 .withName("Map reduce project")
                 .withInstances(instances)
-                .withSteps(stepConfig1)
+                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4)
                 .withLogUri("s3://bucket163897429777/logs/")
                 .withServiceRole("EMR_DefaultRole")
                 .withJobFlowRole("EMR_EC2_DefaultRole")

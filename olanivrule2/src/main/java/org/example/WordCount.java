@@ -53,7 +53,7 @@ public class WordCount {
     }
     // TODO: we need to change it for our assignment
     public static void main(String[] args) throws Exception {
-        System.out.println("[DEBUG] STEP 1 started!");
+        System.out.println("[DEBUG] WordCount started!");
         System.out.println(args.length > 0 ? args[0] : "no args");
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Word Count");
