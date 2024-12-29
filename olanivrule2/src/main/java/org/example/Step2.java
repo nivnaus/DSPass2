@@ -111,10 +111,10 @@ public class Step2 {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        job.setOutputFormatClass(TextOutputFormat.class);
-        job.setInputFormatClass(SequenceFileInputFormat.class);
-        TextInputFormat.addInputPath(job, new Path("s3://bucket163897429777/subSums.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://bucket163897429777/consts.txt"));// TODO: change this to our own bucket
+//        job.setOutputFormatClass(TextOutputFormat.class);
+//        job.setInputFormatClass(SequenceFileInputFormat.class);
+        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/consts.txt"));// TODO: change this to our own bucket
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

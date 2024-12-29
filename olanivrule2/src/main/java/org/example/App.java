@@ -17,7 +17,7 @@ public class App {
     public static AmazonEC2 ec2;
     public static AmazonElasticMapReduce emr;
 
-    public static int numberOfInstances = 1;
+    public static int numberOfInstances = 3;
 
     public static void main(String[]args){
         credentialsProvider = new ProfileCredentialsProvider();
@@ -34,12 +34,12 @@ public class App {
                 .withCredentials(credentialsProvider)
                 .withRegion("us-east-1")
                 .build();
-        System.out.println( "list cluster");
-        System.out.println( emr.listClusters());
+        System.out.println("list cluster");
+        System.out.println(emr.listClusters());
 
         // Step 1
         HadoopJarStepConfig step1 = new HadoopJarStepConfig()
-                .withJar("s3://bucket163897429777/jars/Step1.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step1.jar") // TODO: change this to our own bucket
                 .withMainClass("Step1");
 
         StepConfig stepConfig1 = new StepConfig()
@@ -49,7 +49,7 @@ public class App {
 
         // Step 2
         HadoopJarStepConfig step2 = new HadoopJarStepConfig()
-                .withJar("s3://bucket163897429777/jars/Step2.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step2.jar") // TODO: change this to our own bucket
                 .withMainClass("step2");
 
         StepConfig stepConfig2 = new StepConfig()
@@ -59,7 +59,7 @@ public class App {
 
         // Step 3
         HadoopJarStepConfig step3 = new HadoopJarStepConfig()
-                .withJar("s3://bucket163897429777/jars/Step3.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step3.jar") // TODO: change this to our own bucket
                 .withMainClass("step3");
 
         StepConfig stepConfig3 = new StepConfig()
@@ -69,7 +69,7 @@ public class App {
 
         // Step 4
         HadoopJarStepConfig step4 = new HadoopJarStepConfig()
-                .withJar("s3://bucket163897429777/jars/Step4.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step4.jar") // TODO: change this to our own bucket
                 .withMainClass("step4");
 
         StepConfig stepConfig4 = new StepConfig()
@@ -93,7 +93,7 @@ public class App {
                 .withName("Map reduce project")
                 .withInstances(instances)
                 .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4)
-                .withLogUri("s3://bucket163897429777/logs/")
+                .withLogUri("s3://nivolarule29122024/logs/")
                 .withServiceRole("EMR_DefaultRole")
                 .withJobFlowRole("EMR_EC2_DefaultRole")
                 .withReleaseLabel("emr-5.11.0");

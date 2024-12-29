@@ -86,7 +86,7 @@ public class Step4 {
 
     // TODO: we need to change it for our assignment
     public static void main(String[] args) throws Exception {
-        System.out.println("[DEBUG] STEP 1 started!");
+        System.out.println("[DEBUG] STEP 4 started!");
         System.out.println(args.length > 0 ? args[0] : "no args");
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Step 4");
@@ -100,10 +100,10 @@ public class Step4 {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(DoubleWritable.class);
 
-        job.setOutputFormatClass(TextOutputFormat.class);
-        job.setInputFormatClass(SequenceFileInputFormat.class);
-        TextInputFormat.addInputPath(job, new Path("s3://bucket163897429777/consts.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://bucket163897429777/output.txt"));// TODO: change this to our own bucket
+//        job.setOutputFormatClass(TextOutputFormat.class);
+//        job.setInputFormatClass(SequenceFileInputFormat.class);
+        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/consts.txt"));
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/output"));// TODO: change this to our own bucket
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

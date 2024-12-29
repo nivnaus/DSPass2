@@ -109,11 +109,12 @@ public class Step1 {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
-        job.setOutputFormatClass(TextOutputFormat.class);
-        job.setInputFormatClass(SequenceFileInputFormat.class);
+//        job.setOutputFormatClass(TextOutputFormat.class);
+//        job.setInputFormatClass(SequenceFileInputFormat.class);
         // todo: start with a smaller file
-        TextInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://bucket163897429777/subSums.txt"));// TODO: change this to our own bucket
+//        TextInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data"));
+        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/exampleOf3gram.txt"));
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));// TODO: change this to our own bucket
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
