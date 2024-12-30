@@ -26,12 +26,6 @@ public class Step2 {
     public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text mapKey = new Text();
-//        long c0;
-//
-//        @Override
-//        protected void setup(Context context) throws IOException {
-//            c0 = 0;
-//        }
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
@@ -60,7 +54,7 @@ public class Step2 {
 
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
-            String trio = key.toString();
+            String trio = key.toString(); // w1#w2#*
             String[] parsedTrio = trio.split("#");
             String w1 = parsedTrio[0];
             String w2 = parsedTrio[1];
@@ -72,7 +66,7 @@ public class Step2 {
             } else {
                 //collect n2, c1, c2..
                 int c1 = asteriskMap.get("*#"+w2+"#*");
-                int c2 = asteriskMap.get(w1+w2+"#*");
+                int c2 = asteriskMap.get(w1+ "#" + w2 + "#*");
                 int n2 = asteriskMap.get("*#"+w2+"#"+w3);
                 int n3 = freqOfTrio;
 
@@ -104,7 +98,7 @@ public class Step2 {
         job.setJarByClass(Step2.class);
         job.setMapperClass(MapperClass.class);
         job.setPartitionerClass(PartitionerClass.class);
-        job.setCombinerClass(ReducerClass.class);
+//        job.setCombinerClass(ReducerClass.class);
         job.setReducerClass(ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(IntWritable.class);
