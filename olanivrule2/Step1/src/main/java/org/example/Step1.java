@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Step1 {
-    public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
+    public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text mapKey = new Text();
         private HashSet<String> stopWords = new HashSet<>(Arrays.asList(
@@ -51,7 +51,7 @@ public class Step1 {
             String[] tabParse = value.toString().split("\t");
             String trio = tabParse[0];
             String trioMatchCount = tabParse[2];
-            int trioMatchCountInt = Integer.parseInt(trioMatchCount);
+            IntWritable trioMatchCountInt = new IntWritable(Integer.parseInt(trioMatchCount));
             String[] words = trio.split(" ");
             String w1 = words[0];
             String w2 = words[1];
@@ -61,66 +61,40 @@ public class Step1 {
             if(!(stopWords.contains(w1) || stopWords.contains(w2)  || stopWords.contains(w3))) {
                 // emit the 5 subs
                 mapKey.set(w1+"#"+w2+"#"+w3);
-                context.write(mapKey, new Text( trioMatchCountInt + "\t" + trio)); //N3
+                context.write(mapKey, trioMatchCountInt); //N3
                 mapKey.set("*#"+w2+"#"+w3);
-                Text oneTrio = new Text("1\t" + trio);// trio = "w1 w2 w3"
-                context.write(mapKey, oneTrio); // N2
+                context.write(mapKey, one); // N2
                 mapKey.set("*#"+w2+"#*");
-                context.write(mapKey, oneTrio); // C1
+                context.write(mapKey, one); // C1
                 mapKey.set("*#*#"+w3);
-                context.write(mapKey, oneTrio); // N1
-                mapKey.set(w1 + "#" + w2 + "#*");
-                context.write(mapKey, oneTrio); //C2
+                context.write(mapKey, one); // N1
+                mapKey.set(w1 + "#" + w2 + "#*");// todo: change according to this
+                context.write(mapKey, one); //C2
                 mapKey.set(w1 + "#*#*");
-                context.write(mapKey, oneTrio); //for C0 in step 2
+                context.write(mapKey, one); //for C0 in step 2
             }
         }
     }
 
-
-    public static class ReducerClass extends Reducer<Text,Text,Text,IntWritable> {
-        @Override
-        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
-//            int sum = 0;
-//            for (Text value : values) {
-//                String[] parts = value.toString().split("\t");
-//                int trioSum = Integer.parseInt(parts[0]); // 1\tw1 w2 w3
-//                sum += trioSum;
-//            }
-//
-//            context.write(key, new IntWritable(sum));
+    public static class ReducerClass extends Reducer<Text,IntWritable,Text,IntWritable> {
+        @Override // key *#halah#* values = [1,1,1]
+        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
             int sum = 0;
-            for (Text value : values) {
-                sum += Integer.parseInt(value.toString());
+            for (IntWritable value : values) {
+                sum += value.get();
             }
-            context.write(key, new IntWritable(sum));
+
+//            String splitedKey = key.toString().split("\t")[0];
+            context.write(key, new IntWritable(sum)); //todo: change to splited key
         }
     }
 
-    public static class CombinerClass extends Reducer<Text, Text, Text, Text> {
-        @Override // *#halah#* [1\tyeled halah lagan, 1\tyeled halah habaita]
-        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            for (Text value : values) {
-                String[] parts = value.toString().split("\t");
-                int count = Integer.parseInt(parts[0]); // Parse the count from the Text value
-                sum += count;
-            }
-            // Emit the summed-up value as Text
-            context.write(key, new Text(sum + ""));
-        }
-    }
-    // *#halah#* [1] (reducer 1) -> r0001   *#halah#*\tc2 = 1
-    // *#halah#* [1] (reducer 2) -> r0002   *#halah#*\tc2 = 1
-    // yeled halah lagan ->  key: *#halah#*  value: 1\tyeled halah lagan
-    // yeled halah habaita -> key: *#halah#* value: 1\tyeled halah habaita
-
-    public static class PartitionerClass extends Partitioner<Text, Text> {
+    public static class PartitionerClass extends Partitioner<Text, IntWritable> {
         @Override
-        public int getPartition(Text key, Text value, int numPartitions) {
-            String splitValue = value.toString().split("\t")[1];// 1\tw1 w2 w3
+        public int getPartition(Text key, IntWritable value, int numPartitions) {
+//            String splitedKey = key.toString().split("\t")[1];
 
-            return Math.abs(splitValue.hashCode()) % numPartitions;
+            return Math.abs(key.hashCode()) % numPartitions; // todo: change to splitedKey.hashCode
         }
     }
     // TODO: we need to change it for our assignment
@@ -132,10 +106,10 @@ public class Step1 {
         job.setJarByClass(Step1.class);
         job.setMapperClass(MapperClass.class);
         job.setPartitionerClass(PartitionerClass.class);
-        job.setCombinerClass(CombinerClass.class);
+        job.setCombinerClass(ReducerClass.class);
         job.setReducerClass(ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
