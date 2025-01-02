@@ -10,17 +10,15 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class Step4 {
-    public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWritable> {
+    public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
         private final static IntWritable one = new IntWritable(1);
         private Text mapKey = new Text();
 
@@ -28,36 +26,58 @@ public class Step4 {
         public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
             String[] parsed = value.toString().split("\t");
             String trio = parsed[0];
-            int trioSum = Integer.parseInt(parsed[1]);
-
-            if(trio.equals("*#*#*")  || !(trio.contains("*"))) {
-                mapKey.set(trio);
-                context.write(mapKey, new IntWritable(trioSum));
-            }
+            String varAndVal = parsed[1];
+            mapKey.set(trio);
+            context.write(mapKey, new Text(varAndVal));
         }
     }
 
-    public static class ReducerClass extends Reducer<Text,IntWritable,Text,Text> {
-        int c0 = 0;
-        @Override
-        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
+    public static class ReducerClass extends Reducer<Text,Text,Text,DoubleWritable> {
+
+        @Override // c2#65, c1#78, n3#689
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
             String trio = key.toString();
-            int freqOfTrio = values.iterator().next().get(); //values should have exactly one value
+            String[] parsedTrio = trio.split("#");
+            String w1 = parsedTrio[0];
+            String w2 = parsedTrio[1];
+            String w3 = parsedTrio[2];
+            double c0 = 0;
+            double c1 = 0;
+            double c2 = 0;
+            double n1 = 0;
+            double n2 = 0;
+            double n3 = 0;
 
-            if(trio.equals("*#*#*")) {
-                c0 = freqOfTrio;
-            } else {
-                context.write(key, new Text("c0#"+c0));
+            Iterator<Text> iterator = values.iterator();
+            while(iterator.hasNext()) {
+                Text value = iterator.next();
+                String var = value.toString().split("#")[0];
+                int val = Integer.parseInt(value.toString().split("#")[1]);
+
+                switch (var) {
+                    case "c0": { c0 = val;break;}
+                    case "c1": { c1 = val; break;}
+                    case "c2": { c2 = val; break;}
+                    case "n1": { n1 = val; break;}
+                    case "n2": { n2 = val; break;}
+                    case "n3": { n3 = val; break;}
+                }
             }
+
+            double k2 = (Math.log(n2 + 1) + 1) / (Math.log(n2 + 1) + 2);
+            double k3 = (Math.log(n3 + 1) + 1) / (Math.log(n3 + 1) + 2);
+
+            double probability = k3 * (n3 / c2) + (1 - k3) * k2 * (n2 / c1) + (1 - k3) * (1 - k2) * (n1 / c0);
+            double roundedValue = Math.round(probability * 100.0) / 100.0;
+
+            Text trioWithSpaces = new Text(w1 + " " + w2 + " " +w3);
+            context.write(trioWithSpaces, new DoubleWritable(roundedValue));
         }
     }
 
-    public static class PartitionerClass extends Partitioner<Text, IntWritable> {
+    public static class PartitionerClass extends Partitioner<Text, Text> {
         @Override
-        public int getPartition(Text key, IntWritable value, int numPartitions) {
-            if(key.toString().equals("*#*#*") || !(key.toString().contains("*"))) {
-                return 0;
-            }
+        public int getPartition(Text key, Text value, int numPartitions) {
             return Math.abs(key.hashCode()) % numPartitions;
         }
     }
@@ -73,12 +93,13 @@ public class Step4 {
 //        job.setCombinerClass(ReducerClass.class);
         job.setReducerClass(ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(IntWritable.class);
+        job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
+        job.setOutputValueClass(DoubleWritable.class);
 
-        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/constsWithC0.txt"));
+        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/constsW2.txt"));
+        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/constsW3.txt"));
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/output"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

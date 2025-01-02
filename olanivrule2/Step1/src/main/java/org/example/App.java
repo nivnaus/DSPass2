@@ -11,6 +11,9 @@ import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduce;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduceClientBuilder;
 import com.amazonaws.services.elasticmapreduce.model.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class App {
     public static AWSCredentialsProvider credentialsProvider;
     public static AmazonS3 S3;
@@ -38,9 +41,15 @@ public class App {
         System.out.println(emr.listClusters());
 
         // Step 1
+//        String fsConfig = "fs.defaultFS=s3a://nivolarule29122024";  // Your S3 bucket path
+
         HadoopJarStepConfig step1 = new HadoopJarStepConfig()
                 .withJar("s3://nivolarule29122024/jars/Step1.jar") // TODO: change this to our own bucket
                 .withMainClass("Step1");
+
+//        List<String> step1args = new ArrayList<>();
+//        step1args.add(fsConfig);
+//        step1.setArgs(step1args);
 
         StepConfig stepConfig1 = new StepConfig()
                 .withName("Step1")
@@ -77,16 +86,6 @@ public class App {
                 .withHadoopJarStep(step4)
                 .withActionOnFailure("TERMINATE_JOB_FLOW");
 
-        // Step 5
-        HadoopJarStepConfig step5 = new HadoopJarStepConfig()
-                .withJar("s3://nivolarule29122024/jars/Step5.jar") // TODO: change this to our own bucket
-                .withMainClass("Step5");
-
-        StepConfig stepConfig5 = new StepConfig()
-                .withName("Step5")
-                .withHadoopJarStep(step5)
-                .withActionOnFailure("TERMINATE_JOB_FLOW");
-
 
         //Job flow
         JobFlowInstancesConfig instances = new JobFlowInstancesConfig()
@@ -102,7 +101,7 @@ public class App {
         RunJobFlowRequest runFlowRequest = new RunJobFlowRequest()
                 .withName("Map reduce project")
                 .withInstances(instances)
-                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4, stepConfig5)
+                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4) //todo: removed step3
                 .withLogUri("s3://nivolarule29122024/logs/")
                 .withServiceRole("EMR_DefaultRole")
                 .withJobFlowRole("EMR_EC2_DefaultRole")

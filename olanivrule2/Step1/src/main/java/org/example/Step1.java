@@ -13,10 +13,9 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.fs.FileSystem;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,32 +47,35 @@ public class Step1 {
         @Override//3gram: w1 w2 w3\tyear\tmatch_count\tpage_count\tvolume_count
         public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
             // parse 3gram input line
+            System.out.println(value);
             String[] tabParse = value.toString().split("\t");
             String trio = tabParse[0];
             String trioMatchCount = tabParse[2];
             IntWritable trioMatchCountInt = new IntWritable(Integer.parseInt(trioMatchCount));
             String[] words = trio.split(" ");
-            String w1 = words[0];
-            String w2 = words[1];
-            String w3 = words[2];
+            if(words.length == 3) {
+                String w1 = words[0];
+                String w2 = words[1];
+                String w3 = words[2];
 
-            // extract the 5 subs -> filtering stop words
-            if(!(stopWords.contains(w1) || stopWords.contains(w2)  || stopWords.contains(w3))) {
-                // emit the 5 subs
-                mapKey.set(w1+"#"+w2+"#"+w3);
-                context.write(mapKey, trioMatchCountInt); //N3
-                mapKey.set("*#"+w2+"#"+w3);
-                context.write(mapKey, trioMatchCountInt); // N2
-                mapKey.set("*#"+w2+"#*");
-                context.write(mapKey, trioMatchCountInt); // C1
-                mapKey.set("*#*#"+w3);
-                context.write(mapKey, trioMatchCountInt); // N1
-                mapKey.set(w1 + "#" + w2 + "#*");
-                context.write(mapKey, trioMatchCountInt); //C2
-                IntWritable trioMatchCountIntTimes3 = new IntWritable(3*Integer.parseInt(trioMatchCount));
-                mapKey.set("*#*#*");
-                context.write(mapKey, trioMatchCountIntTimes3); //for C0 in step 2
+                // extract the 5 subs -> filtering stop words
+                if (!(stopWords.contains(w1) || stopWords.contains(w2) || stopWords.contains(w3))) {
+                    // emit the 5 subs
+                    mapKey.set(w1 + "#" + w2 + "#" + w3);
+                    context.write(mapKey, trioMatchCountInt); //N3
+                    mapKey.set("*#" + w2 + "#" + w3);
+                    context.write(mapKey, trioMatchCountInt); // N2
+                    mapKey.set("*#" + w2 + "#*");
+                    context.write(mapKey, trioMatchCountInt); // C1
+                    mapKey.set("*#*#" + w3);
+                    context.write(mapKey, trioMatchCountInt); // N1
+                    mapKey.set(w1 + "#" + w2 + "#*");
+                    context.write(mapKey, trioMatchCountInt); //C2
+                    IntWritable trioMatchCountIntTimes3 = new IntWritable(3 * Integer.parseInt(trioMatchCount));
+                    mapKey.set("*#*#*");
+                    context.write(mapKey, trioMatchCountIntTimes3); //for C0 in step 2
 
+                }
             }
         }
     }
@@ -86,9 +88,23 @@ public class Step1 {
             for (IntWritable value : values) {
                 sum += value.get();
             }
+            // if not 3 *
+            if(!key.toString().equals("*#*#*")){
+                context.write(key, new IntWritable(sum));
+            }
+            //if 3 * , upload to s3 to "c0.txt"
+            else {
+                Configuration conf = context.getConfiguration();
+                String s3Path = "s3://nivolarule29122024/c0.txt";
 
-            context.write(key, new IntWritable(sum));
+                Path path = new Path(s3Path);
+                FileSystem fs = FileSystem.get(path.toUri(), conf); // Automatically uses the Hadoop configuration
 
+                try (OutputStream outputStream = fs.create(path);
+                    PrintWriter writer = new PrintWriter(outputStream)) {
+                    writer.println(sum); // Write the value of c0
+                }
+            }
         }
     }
 
@@ -115,11 +131,11 @@ public class Step1 {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
-//        job.setOutputFormatClass(TextOutputFormat.class);
-//        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
         // todo: start with a smaller file
-//        TextInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data"));
-        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/exampleOf3gram.txt"));
+        TextInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data"));
+//        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/exampleOf3gram.txt"));
         FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
