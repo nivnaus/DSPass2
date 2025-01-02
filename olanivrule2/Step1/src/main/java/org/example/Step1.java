@@ -63,41 +63,43 @@ public class Step1 {
                 mapKey.set(w1+"#"+w2+"#"+w3);
                 context.write(mapKey, trioMatchCountInt); //N3
                 mapKey.set("*#"+w2+"#"+w3);
-                context.write(mapKey, one); // N2
+                context.write(mapKey, trioMatchCountInt); // N2
                 mapKey.set("*#"+w2+"#*");
-                context.write(mapKey, one); // C1
+                context.write(mapKey, trioMatchCountInt); // C1
                 mapKey.set("*#*#"+w3);
-                context.write(mapKey, one); // N1
-                mapKey.set(w1 + "#" + w2 + "#*");// todo: change according to this
-                context.write(mapKey, one); //C2
-                mapKey.set(w1 + "#*#*");
-                context.write(mapKey, one); //for C0 in step 2
+                context.write(mapKey, trioMatchCountInt); // N1
+                mapKey.set(w1 + "#" + w2 + "#*");
+                context.write(mapKey, trioMatchCountInt); //C2
+                IntWritable trioMatchCountIntTimes3 = new IntWritable(3*Integer.parseInt(trioMatchCount));
+                mapKey.set("*#*#*");
+                context.write(mapKey, trioMatchCountIntTimes3); //for C0 in step 2
+
             }
         }
     }
 
     public static class ReducerClass extends Reducer<Text,IntWritable,Text,IntWritable> {
-        @Override // key *#halah#* values = [1,1,1]
+
+        @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
             int sum = 0;
             for (IntWritable value : values) {
                 sum += value.get();
             }
 
-//            String splitedKey = key.toString().split("\t")[0];
-            context.write(key, new IntWritable(sum)); //todo: change to splited key
+            context.write(key, new IntWritable(sum));
+
         }
     }
+
+
 
     public static class PartitionerClass extends Partitioner<Text, IntWritable> {
         @Override
         public int getPartition(Text key, IntWritable value, int numPartitions) {
-//            String splitedKey = key.toString().split("\t")[1];
-
-            return Math.abs(key.hashCode()) % numPartitions; // todo: change to splitedKey.hashCode
+            return Math.abs(key.hashCode()) % numPartitions;
         }
     }
-    // TODO: we need to change it for our assignment
     public static void main(String[] args) throws Exception {
         System.out.println("[DEBUG] STEP 1 started!");
         System.out.println(args.length > 0 ? args[0] : "no args");
@@ -118,7 +120,7 @@ public class Step1 {
         // todo: start with a smaller file
 //        TextInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data"));
         TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/exampleOf3gram.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));// TODO: change this to our own bucket
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

@@ -20,71 +20,48 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class Step4 {
-    public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
+    public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text mapKey = new Text();
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
-            // input line: yeled#halah#lagan c1#25
-            String[] parsed = value.toString().split("\t"); //todo: maybe change
+            String[] parsed = value.toString().split("\t");
             String trio = parsed[0];
-            String varAndVal = parsed[1];
-            mapKey.set(trio);
-            context.write(mapKey, new Text(varAndVal));
+            int trioSum = Integer.parseInt(parsed[1]);
+
+            if(trio.equals("*#*#*")  || !(trio.contains("*"))) {
+                mapKey.set(trio);
+                context.write(mapKey, new IntWritable(trioSum));
+            }
         }
     }
 
-    public static class ReducerClass extends Reducer<Text,Text,Text,DoubleWritable> {
-        private HashMap<String, Integer> asteriskMap = new HashMap<>();// *#*#w3 *#w2#* w1#*#*
-
-        @Override // c2#65, c1#78, n3#689
-        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
+    public static class ReducerClass extends Reducer<Text,IntWritable,Text,Text> {
+        int c0 = 0;
+        @Override
+        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
             String trio = key.toString();
-            String[] parsedTrio = trio.split("#");
-            String w1 = parsedTrio[0];
-            String w2 = parsedTrio[1];
-            String w3 = parsedTrio[2];
-            double c0 = 0;
-            double c1 = 0;
-            double c2 = 0;
-            double n1 = 0;
-            double n2 = 0;
-            double n3 = 0;
+            int freqOfTrio = values.iterator().next().get(); //values should have exactly one value
 
-            Iterator<Text> iterator = values.iterator();
-            while(iterator.hasNext()) {
-                Text value = iterator.next();
-                String var = value.toString().split("#")[0];
-                int val = Integer.parseInt(value.toString().split("#")[1]);
-
-                switch (var) {
-                    case "c0": { c0 = val;break;}
-                    case "c1": { c1 = val; break;}
-                    case "c2": { c2 = val; break;}
-                    case "n1": { n1 = val; break;}
-                    case "n2": { n2 = val; break;}
-                    case "n3": { n3 = val; break;}
-                }
+            if(trio.equals("*#*#*")) {
+                c0 = freqOfTrio;
+            } else {
+                context.write(key, new Text("c0#"+c0));
             }
-
-            double k2 = (Math.log(n2 + 1) + 1) / (Math.log(n2 + 1) + 2);
-            double k3 = (Math.log(n3 + 1) + 1) / (Math.log(n3 + 1) + 2);
-
-            double probability = k3 * (n3 / c2) + (1 - k3) * k2 * (n2 / c1) + (1 - k3) * (1 - k2) * (n1 / c0);
-
-            context.write(key, new DoubleWritable(probability)); // todo: change to result
         }
     }
 
     public static class PartitionerClass extends Partitioner<Text, IntWritable> {
         @Override
         public int getPartition(Text key, IntWritable value, int numPartitions) {
+            if(key.toString().equals("*#*#*") || !(key.toString().contains("*"))) {
+                return 0;
+            }
             return Math.abs(key.hashCode()) % numPartitions;
         }
     }
 
-    // TODO: we need to change it for our assignment
     public static void main(String[] args) throws Exception {
         System.out.println("[DEBUG] STEP 4 started!");
         System.out.println(args.length > 0 ? args[0] : "no args");
@@ -93,17 +70,15 @@ public class Step4 {
         job.setJarByClass(Step4.class);
         job.setMapperClass(MapperClass.class);
         job.setPartitionerClass(PartitionerClass.class);
-        job.setCombinerClass(ReducerClass.class);
+//        job.setCombinerClass(ReducerClass.class);
         job.setReducerClass(ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(DoubleWritable.class);
+        job.setOutputValueClass(Text.class);
 
-//        job.setOutputFormatClass(TextOutputFormat.class);
-//        job.setInputFormatClass(SequenceFileInputFormat.class);
-        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/consts.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/output"));// TODO: change this to our own bucket
+        TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/constsWithC0.txt"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

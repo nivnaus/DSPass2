@@ -1,11 +1,10 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="Step3:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/Step3_jar</output-path>
-    <root id="archive" name="Step3.jar">
-      <element id="module-output" name="Step3" />
+  <artifact type="jar" name="Step5:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Step5_jar</output-path>
+    <root id="archive" name="Step5.jar">
+      <element id="module-output" name="Step5" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/xmlenc/xmlenc/0.52/xmlenc-0.52.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/io/netty/netty/3.6.2.Final/netty-3.6.2.Final.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$USER_HOME$/.jdks/corretto-1.8.0_432/lib/tools.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/zookeeper/zookeeper/3.4.6/zookeeper-3.4.6.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/hadoop/hadoop-mapreduce-client-core/2.6.0/hadoop-mapreduce-client-core-2.6.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-simple/2.0.4/slf4j-simple-2.0.4.jar" path-in-jar="/" />
@@ -86,6 +85,7 @@
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/inject/guice/3.0/guice-3.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/commons/commons-compress/1.4.1/commons-compress-1.4.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/log4j/log4j/1.2.17/log4j-1.2.17.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.jdks/corretto-1.8.0_432/lib/tools.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/directory/api/api-util/1.0.0-M20/api-util-1.0.0-M20.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-net/commons-net/3.1/commons-net-3.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/directory/server/apacheds-i18n/2.0.0-M15/apacheds-i18n-2.0.0-M15.jar" path-in-jar="/" />

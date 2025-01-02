@@ -1,5 +1,6 @@
 package org.example;
 
+import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -14,6 +15,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
+import javax.naming.Context;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,7 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class Step2 {
-    public static long c0 = 0;
+//    public static long c0 = 0;
+
 
     public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
@@ -29,23 +32,11 @@ public class Step2 {
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
-            //nothing special, just count c0
-            // input line: *#*#yeled 24
-            String[] parsed = value.toString().split("\t"); //todo: maybe change
+            String[] parsed = value.toString().split("\t");
             String trio = parsed[0];
             int trioSum = Integer.parseInt(parsed[1]);
-            //sum everything that has 2 starts for C0
-            // *#*#w3 *#w2#* w1#*#*
-            if(trio.indexOf('*') != trio.lastIndexOf('*')) {
-                c0 += trioSum;
-            }
-            String[] parsedTrio = trio.split("#");
-            String w2 = parsedTrio[1];
-            String w3 = parsedTrio[2];
-            if (!(w2.equals("*") && w3.equals("*"))) { // if not w1#*#*
-                mapKey.set(trio);
-                context.write(mapKey, new IntWritable(trioSum));
-            }
+            mapKey.set(trio);
+            context.write(mapKey, new IntWritable(trioSum));
         }
     }
 
@@ -54,7 +45,7 @@ public class Step2 {
 
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
-            String trio = key.toString(); // w1#w2#*
+            String trio = key.toString();
             String[] parsedTrio = trio.split("#");
             String w1 = parsedTrio[0];
             String w2 = parsedTrio[1];
@@ -70,7 +61,6 @@ public class Step2 {
                 int n2 = asteriskMap.get("*#"+w2+"#"+w3);
                 int n3 = freqOfTrio;
 
-                context.write(key, new Text("c0#"+c0));
                 context.write(key, new Text("c1#"+c1));
                 context.write(key, new Text("c2#"+c2));
                 context.write(key, new Text("n2#"+n2));
@@ -89,7 +79,6 @@ public class Step2 {
         }
     }
 
-    // TODO: we need to change it for our assignment
     public static void main(String[] args) throws Exception {
         System.out.println("[DEBUG] STEP 2 started!");
         System.out.println(args.length > 0 ? args[0] : "no args");
@@ -105,10 +94,8 @@ public class Step2 {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-//        job.setOutputFormatClass(TextOutputFormat.class);
-//        job.setInputFormatClass(SequenceFileInputFormat.class);
         TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/consts.txt"));// TODO: change this to our own bucket
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/constsW2.txt"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

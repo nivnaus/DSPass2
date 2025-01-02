@@ -13,6 +13,7 @@
         <module>Step2</module>
         <module>Step3</module>
         <module>Step4</module>
+        <module>Step5</module>
     </modules>
 
     <properties>

@@ -24,15 +24,11 @@ public class Step3 {
 
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
-        //nothing special, just count c0
-        // input line: *#*#yeled 24
-        String[] parsed = value.toString().split("\t"); //todo: maybe change
+        String[] parsed = value.toString().split("\t");
         String trio = parsed[0];
-        String[] parsedTrio = trio.split("#");
-        String w2 = parsedTrio[1];
-        String w3 = parsedTrio[2];
         int trioSum = Integer.parseInt(parsed[1]);
-        if (!(w2.equals("*") && w3.equals("*"))) { // if not w1#*#*
+
+        if((!trio.equals("*#*#*") && trio.contains("*#*#")) || !(trio.contains("*"))) {
             mapKey.set(trio);
             context.write(mapKey, new IntWritable(trioSum));
         }
@@ -51,7 +47,7 @@ public class Step3 {
             String w3 = parsedTrio[2];
             int freqOfTrio = values.iterator().next().get(); //values should have exactly one value
 
-            if(w1.equals("*") || w2.equals("*")) {
+            if(w1.equals("*") && w2.equals("*")) {
                 asteriskMap.put(trio,freqOfTrio);
             } else {
                 //collect n1
@@ -71,7 +67,6 @@ public class Step3 {
         }
     }
 
-    // TODO: we need to change it for our assignment
     public static void main(String[] args) throws Exception {
         System.out.println("[DEBUG] STEP 3 started!");
         System.out.println(args.length > 0 ? args[0] : "no args");
@@ -80,17 +75,15 @@ public class Step3 {
         job.setJarByClass(Step3.class);
         job.setMapperClass(MapperClass.class);
         job.setPartitionerClass(PartitionerClass.class);
-        job.setCombinerClass(ReducerClass.class);
+//        job.setCombinerClass(ReducerClass.class);
         job.setReducerClass(ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-//        job.setOutputFormatClass(TextOutputFormat.class);
-//        job.setInputFormatClass(SequenceFileInputFormat.class);
         TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/subSums.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/consts.txt"));// TODO: change this to our own bucket
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/constsW3.txt"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
