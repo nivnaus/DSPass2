@@ -99,7 +99,7 @@ public class Step4 {
 
         TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/constsW2.txt"));
         TextInputFormat.addInputPath(job, new Path("s3://nivolarule29122024/constsW3.txt"));
-        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/output"));
+        FileOutputFormat.setOutputPath(job, new Path("s3://nivolarule29122024/notSortedOutput.txt"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

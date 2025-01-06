@@ -41,15 +41,10 @@ public class App {
         System.out.println(emr.listClusters());
 
         // Step 1
-//        String fsConfig = "fs.defaultFS=s3a://nivolarule29122024";  // Your S3 bucket path
 
         HadoopJarStepConfig step1 = new HadoopJarStepConfig()
-                .withJar("s3://nivolarule29122024/jars/Step1.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step1.jar")
                 .withMainClass("Step1");
-
-//        List<String> step1args = new ArrayList<>();
-//        step1args.add(fsConfig);
-//        step1.setArgs(step1args);
 
         StepConfig stepConfig1 = new StepConfig()
                 .withName("Step1")
@@ -58,7 +53,7 @@ public class App {
 
         // Step 2
         HadoopJarStepConfig step2 = new HadoopJarStepConfig()
-                .withJar("s3://nivolarule29122024/jars/Step2.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step2.jar")
                 .withMainClass("Step2");
 
         StepConfig stepConfig2 = new StepConfig()
@@ -68,7 +63,7 @@ public class App {
 
         // Step 3
         HadoopJarStepConfig step3 = new HadoopJarStepConfig()
-                .withJar("s3://nivolarule29122024/jars/Step3.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step3.jar")
                 .withMainClass("Step3");
 
         StepConfig stepConfig3 = new StepConfig()
@@ -78,12 +73,22 @@ public class App {
 
         // Step 4
         HadoopJarStepConfig step4 = new HadoopJarStepConfig()
-                .withJar("s3://nivolarule29122024/jars/Step4.jar") // TODO: change this to our own bucket
+                .withJar("s3://nivolarule29122024/jars/Step4.jar")
                 .withMainClass("Step4");
 
         StepConfig stepConfig4 = new StepConfig()
                 .withName("Step4")
                 .withHadoopJarStep(step4)
+                .withActionOnFailure("TERMINATE_JOB_FLOW");
+
+        // Step 5
+        HadoopJarStepConfig step5 = new HadoopJarStepConfig()
+                .withJar("s3://nivolarule29122024/jars/Step5.jar")
+                .withMainClass("Step5");
+
+        StepConfig stepConfig5 = new StepConfig()
+                .withName("Step5")
+                .withHadoopJarStep(step5)
                 .withActionOnFailure("TERMINATE_JOB_FLOW");
 
 
@@ -101,7 +106,7 @@ public class App {
         RunJobFlowRequest runFlowRequest = new RunJobFlowRequest()
                 .withName("Map reduce project")
                 .withInstances(instances)
-                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4) //todo: removed step3
+                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4,stepConfig5)
                 .withLogUri("s3://nivolarule29122024/logs/")
                 .withServiceRole("EMR_DefaultRole")
                 .withJobFlowRole("EMR_EC2_DefaultRole")
