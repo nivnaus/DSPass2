@@ -1,4 +1,4 @@
-Readme for DSP assignment 2 – Olga Oznovich 212969315 olgaoz@post.bgu.ac.il , Niv Naus 316197227 nausn@post.bgu.ac.il  
+DSP assignment 2 – Olga Oznovich, Niv Naus
 
  
 
